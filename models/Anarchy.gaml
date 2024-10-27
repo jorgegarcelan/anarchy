@@ -1,133 +1,208 @@
 model anarchy_game
 
-global {
-  // Parámetros de configuración
-  int caballeros <- 50;
-  int cultura <- 50;
-  int magia <- 50;
-  int oro <- 50;
-  
-  int cycles;
-  int cycles_to_pause <- 5;
-  bool game_over <- false;
-  
-  // Conocimiento común que comparten todos los agentes y pertenecen a la ontología
-  // - Roles
-  string Anarquista_rol <- "Anarquista";
-  string Economista_rol <- "Economista";
-  string Hechicero_rol <- "Hechicero";
-  string General_rol <- "General";
-  string Cosmopolita_rol <- "Cosmopolita";
-  
-  // - Acciones
-  	string aumentar_caballeros <- "Aumentar_Caballeros";
-  	string aumentar_cultura <- "Aumentar_Cultura";
-  	string aumentar_magia <- "Aumentar_Magia";
-  	string aumentar_oro <- "Aumentar_Oro";
-  	
-	string reducir_caballeros <- "Reducir_Caballeros";
-	string reducir_cultura <- "Reducir_Cultura";
-	string reducir_magia <- "Reducir_Magia";
-	string reducir_oro <- "Reducir_Oro";
+global{
+	// Variables globales
 	
-	string excluir_jugador <- "Excluir_Jugador";
-	string convocar_asamblea <- "Convocar_Asamblea";
+	// Parametros del juego: Conocimiento común que comparten 
+	// todos los agentes y pertenecen a la ontología
+	int recurso_caballeros <- 50;
+    int recurso_cultura <- 50;
+    int recurso_magia <- 50;
+    int recurso_oro <- 50;
+	
+	
+	// Roles
+	string Reino_rol <- "Reino";
+	string Jugador_rol <- "Jugador";
+	
+	// Acciones
 	string proponer_alianza <- "Proponer_Alianza";
 	string aceptar_alianza <- "Aceptar_Alianza";
 	string rechazar_alianza <- "Rechazar_Alianza";
-	string disolver_alianza <- "Disolver_Alianza";
-	string incito_votar_a <- "Incito_Votar_A";
-	string negar_votar_a <- "Negar_Votar_A";
-	string aceptar_votar_a <- "Aceptar_Votar_A";
-
-	string incito_reducir_caballeros <- "Incito_reducir_Caballeros";
-	string incito_reducir_cultura <- "Incito_reducir_Cultura";
-	string incito_reducir_magia <- "Incito_reducir_Magia";
-	string incito_reducir_oro <- "Incito_reducir_Oro";
 	
-	string incito_aumentar_caballeros <- "Incito_Aumentar_Caballeros";
-	string incito_aumentar_cultura <- "Incito_Aumentar_Cultura";
-	string incito_aumentar_magia <- "Incito_Aumentar_Magia";
-	string incito_aumentar_oro <- "Incito_Aumentar_Oro";
+	// Predicados
 	
-	string aceptar_reducir_caballeros <- "Aceptar_Reducir_Caballeros";
-	string aceptar_reducir_cultura <- "Aceptar_Reducir_Cultura";
-	string aceptar_reducir_magia <- "Aceptar_Reducir_Magia";
-	string aceptar_reducir_oro <- "Aceptar_Reducir_Oro";
-	
-	string negar_reducir_caballeros <- "Negar_Reducir_Caballeros";
-	string negar_reducir_cultura <- "Negar_Reducir_Cultura";
-	string negar_reducir_magia <- "Negar_Reducir_Magia";
-	string negar_reducir_oro <- "Negar_Reducir_Oro";
-	
-	string aceptar_aumentar_caballeros <- "Aceptar_Aumentar_Caballeros";
-	string aceptar_aumentar_cultura <- "Aceptar_Aumentar_Cultura";
-	string aceptar_aumentar_magia <- "Aceptar_Aumentar_Magia";
-	string aceptar_aumentar_oro <- "Aceptar_Aumentar_Oro";
-	
-	string negar_aumentar_caballeros <- "Negar_Aumentar_Caballeros";
-	string negar_aumentar_cultura <- "Negar_Aumentar_Cultura";
-	string negar_aumentar_magia <- "Negar_Aumentar_Magia";
-	string negar_aumentar_oro <- "Negar_Aumentar_Oro";
-	
-// - Predicados
-	string robo_carta_rol <- "Robo_Carta_Rol";
-	string robo_carta_mazo <- "Robo_Carta_Mazo";
-	string juego_carta <- "Juego_Carta";
-	string nomino_jugador <- "Nomino_Jugador";
-	string jugador_asesinado <- "Jugador_Asesinado";
-	string miro_carta <- "Miro_Carta";
-	string pregunta_voto <- "Pregunta_Voto";
-	string resultado_votacion <- "Resultado_Votacion";
-  
-  // - Conceptos		 	
+	// Conceptos
+	string num_oro <- "Numero_Oro";
+    string num_cultura <- "Numero_Cultura";
+    string num_magia <- "Numero_Magia";
+    string num_caballeros <- "Numero_Caballeros";
+    
 	init {
-		// creamos los agentes
-			create species:df number:1;
-			create species:reino number:1;
-			create species:anarquista number:1;
-			create species:hechicero number:1;
-			create species:economista number:1;
-			create species:general number:1;
-			create species:cosmopolita number:1;
+		create df number: 1;
+		create reino number: 1;
+	    create Jugador number: 1 {
+	      rol <- "Anarquista";
+	      id <- 1;           
+	      anarquistas <-  map([2::false, 3::false]);
+	    }
+	
+	    create Jugador number: 1 {
+	      rol <- "Economista";
+	      id <- 2;           
+	      anarquistas <-  map([1::true, 3::false]);
+	    }	
+	    
+	    create Jugador number: 1 {
+	      rol <- "Hechicero";
+	      id <- 3;           
+	      anarquistas <-  map([1::true, 2::false]);
+	    }
 	}
 	
-	// ciclos
-	reflex counting {
-		cycles <- cycles+1;
+	
+}
+
+species df{
+	list<pair> yellow_pages <- []; 
+    // to register an agent according to his role
+    bool register(string the_role, agent the_agent) {
+	  	bool registered;
+	  	add the_role::the_agent to: yellow_pages;
+	  	return registered;
+  	}
+  	
+    // to search agents according to the role
+	list search(string the_role) {
+	  	list<agent> found_ones <- [];
+		loop i from:0 to: (length(yellow_pages)-1) {
+			pair candidate <- yellow_pages at i;
+			if (candidate.key = the_role) {
+				add item:candidate.value to: found_ones; }
+			} 
+		return found_ones;	
+	} 
+}
+
+
+species Jugador skills: [fipa] control: simple_bdi {
+	int id;
+	string rol;
+	map<int,bool> anarquistas;
+	
+	bool alianza_propuesta <- false;
+	
+	list<Jugador> jugadores;
+	// deseos de los jugadores
+	predicate pedir_proponer_alianza <- new_predicate("pedir_alianza");
+	
+	init {
+		ask df{
+			bool registrado <- register(Jugador_rol, myself);
+		}
 	}
 	
-	// permite observar paso a paso
-	reflex pausing when: cycles = cycles_to_pause {
-		write "pausing simulation";
-		cycles <- 0;
-		do pause;
+	plan plan_proponer_alianza intention: pedir_proponer_alianza{
+			// manda el mensaje de request proponer alianza al jugador i
+			ask df{
+				list<Jugador> todos_jugadores  <- search("Jugador");
+				list<Jugador> jugadores_filtrados <- [];
+				write("Jugadores encontrados en df: " + todos_jugadores);
+				
+				  // Loop through all_players using an indexed loop and add only those that are not myself
+				loop i from: 0 to: (length(todos_jugadores)-1 ) {
+					Jugador candidato <- todos_jugadores at i;
+					    if (candidato != myself) {
+					    
+					      add item: candidato to: jugadores_filtrados;
+				    }
+			    }
+			    myself.jugadores <-jugadores_filtrados;
+			    write("Jugadores filtrados: " + jugadores_filtrados);
+			    
+			}
+			
+			list contenido;
+			string accion <- proponer_alianza;
+			list lista_conceptos <- [id];
+			pair contenido_pair <- accion::lista_conceptos;
+			add contenido_pair to: contenido;
+			write("antes");
+			do start_conversation to: jugadores protocol: 'fipa-request' performative: 'request' contents: contenido;
+			write("despues");
+			// tienes el deseo de hacer una asamblea cuando dispones de esa carta
+			do remove_intention(pedir_proponer_alianza);
+			//do remove_desire(pedir_proponer_alianza);
+		
 	}
 	
-	// para finalizar simulación
-	reflex halting when: game_over {
-		write "halting simulation";
-		do die;
+	reflex receive_request when: !empty(requests){
+		// trata el mensaje request proponer_alianza de el jugador
+		message request_jugador <- first(requests);
+		write 'Jugador ' + id + ' recive un request de un jugador con contenido ' + request_jugador;
+		
+		list lista_contenidos <- list(request_jugador.contents);
+		map contenido_map <- lista_contenidos at 0;
+		pair contenido_pair <- contenido_map.pairs at 0;
+		string accion <- string(contenido_pair.key);
+		list conceptos <- list(contenido_pair.value);
+		int id_propuesta <- conceptos at 0;
+		//Jugador jugador_propuesta <- request_jugador.sender;
+		//int id_propuesta <- jugador_propuesta.id;
+		
+		bool es_anarquista <- anarquistas[id_propuesta];
+		if (es_anarquista) {
+			write("Sospecho que el jugador " + id_propuesta + " es anarquista por lo que no acepto la alianza.");
+			do refuse message: request_jugador contents: request_jugador.contents;
+		} else {
+			write("Acepto la alianza con el jugador " + id_propuesta + ".");
+			do agree message: request_jugador contents: request_jugador.contents;
+		}
+		//do inform message: request_jugador contents: request_jugador.contents;
+		
+	}
+	
+	reflex receive_inform when: !empty(informs){
+		message inform_received <- informs[0];
+		
+	}
+	
+	reflex receive_agree when: !empty(agrees){
+		// tratar el mensaje agree proponer alianza del protocolo del jugador
+		// No se hace nada, se esperaría a la votación
+		message agree_received <- agrees[0];
+		write("Han aceptado una propuesta de alianza");
+	}
+	
+	reflex receive_refuse when: !empty(refuses){
+		// tratar el mensaje agree proponer alianza del protocolo del jugador
+		// No se hace nada, se esperaría a la votación
+		message refuse_received <- refuses[0];
+		write("No han aceptado una propuesta de alianza");
+	}
+} 
+
+
+species reino skills: [fipa] control: simple_bdi{
+	bool anarquismo <- false;
+	int oro <- 50;
+	int cultura <- 50;
+	int caballeros <- 50;
+	int magia <- 50;
+	
+	init{
+		ask df {
+            bool registrado <- register(Reino_rol, myself);
+        }
+		
+	}
+	
+	// recibe query-ref robo_carta_mazo
+	
+	// aumentar o disminuir recursos
+	reflex receive_request when: !empty(requests){
+		
 	}
 }
 
-// directory facilitator to allow agents meet first time from the role they used when they register -- Beers.gaml
-species df {
-  list<pair> yellow_pages <- []; 
-  // to register an agent according to his role
-  bool register(string the_role, agent the_agent) {
-  	bool registered;
-  	add the_role::the_agent to: yellow_pages;
-  	return registered;
-  }
-  // to search agents accoding to the role
-  list search(string the_role) {
-  	list<agent> found_ones <- [];
-	loop i from:0 to: (length(yellow_pages)-1) {
-		pair candidate <- yellow_pages at i;
-		if (candidate.key = the_role) {
-			add item:candidate.value to: found_ones; }
-		} 
-	return found_ones;	
-	} 
+
+experiment propose_alliance type: gui {
+    init {
+    // Ensure the player with id=1 exists and assign the intention
+        ask Jugador {
+            if (id = 1) {
+                do add_intention(pedir_proponer_alianza);
+    		}
+  		}
+	 }
 }
